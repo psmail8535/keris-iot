@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template
 from flask import jsonify
+from flask_cors import CORS
 from werkzeug.serving import WSGIRequestHandler
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -11,12 +12,12 @@ def db_connect():
 	   , host='ec2-44-205-41-76.compute-1.amazonaws.com'
 	   , port= '5432'
 	   , sslmode='require'
-	   ,connect_timeout=15
+	   ,connect_timeout=1024
 	)
 	return con
 	
 app = Flask(__name__)
-
+CORS(app)
 
 @app.route('/')
 def index():

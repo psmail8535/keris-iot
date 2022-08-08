@@ -30,6 +30,7 @@ def iot_get():
 	hum=request.args.get('hum')
 	print('suhu: ', suhu)
 	print('Kelembapan: ', hum)
+	'''
 	con = db_connect()
 	cur = con.cursor() 
 
@@ -37,6 +38,7 @@ def iot_get():
 	cur.execute(query)
 	con.commit()
 	print('Simpan data ke database berhasil\n')
+	'''
 	# ~ print('-----------------------------------------------------')
 	# ~ query = 'select t1.status_aktuator from data_aktuator t1 order by t1.id_data;'
 	# ~ cur.execute(query)

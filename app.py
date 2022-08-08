@@ -25,12 +25,12 @@ def index():
     
 
 @app.route('/iot_get/', methods=['GET']) # ?suhu=27.0&hum=56.9
-def iot_get():                    
+def iot_get(): 
+	'''                   
 	suhu=request.args.get('suhu')
 	hum=request.args.get('hum')
 	print('suhu: ', suhu)
 	print('Kelembapan: ', hum)
-	'''
 	con = db_connect()
 	cur = con.cursor() 
 

@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template
 from flask import jsonify
+from werkzeug.serving import WSGIRequestHandler
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
@@ -53,4 +54,5 @@ def iot_get():
     
 
 if __name__ == '__main__':
+    WSGIRequestHandler.wbufsize = -1        
     app.run(host='0.0.0.0')

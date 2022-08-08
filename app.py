@@ -25,8 +25,7 @@ def index():
     
 
 @app.route('/iot_get/', methods=['GET']) # ?suhu=27.0&hum=56.9
-def iot_get(): 
-	'''                   
+def iot_get():              
 	suhu=request.args.get('suhu')
 	hum=request.args.get('hum')
 	print('suhu: ', suhu)
@@ -39,6 +38,7 @@ def iot_get():
 	con.commit()
 	print('Simpan data ke database berhasil\n')
 	'''
+	'''      
 	# ~ print('-----------------------------------------------------')
 	# ~ query = 'select t1.status_aktuator from data_aktuator t1 order by t1.id_data;'
 	# ~ cur.execute(query)

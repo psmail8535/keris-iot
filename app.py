@@ -10,7 +10,7 @@ def db_connect():
 	   , host='ec2-44-205-41-76.compute-1.amazonaws.com'
 	   , port= '5432'
 	   , sslmode='require'
-	   ,connect_timeout=5
+	   ,connect_timeout=15
 	)
 	return con
 	

@@ -50,8 +50,8 @@ function setupData() {
 	
          var table = $('#example').DataTable({
 		'rowsGroup': [],
-		responsive: true,
-		
+		responsive: true,		
+		pageLength: 100,
             "ajax": {
                 "url": "/json_data",
                 "dataType": "json",

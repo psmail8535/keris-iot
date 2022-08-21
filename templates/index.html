@@ -6,7 +6,7 @@
 	
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-	<title>GESI Aspek Artikel Ilmiah</title>
+	<title>IOT Kontrol</title>
 	<meta name="viewport" content="width=device-width">
 	<link rel="apple-touch-icon" sizes="57x57" href="https://www.kemdikbud.go.id/assets/icon/apple-icon-57x57.png">
 	<!-- Bootstrap CSS  --> 
@@ -53,9 +53,14 @@ function setupData() {
                 //{"data": "id_artikel"},
                 {"data": "nama_sensor",
                 render: function(data, type, full, meta) {
-						return	'<span class="text-information" style="font-weight: bold;">' +full.nama_sensor  +' </span>' ;							
+						return	'<span class="text-information" style="font-weight: bold;">' +full.nama_sensor  +' </span> <br>' +
+						'<span class="text-success" style="font-weight: bold;">' +full.data  +' </span> <br>'  + 
+						full.timestamps
+													
 					}
-				},
+				}
+				/*
+				,
                 {"data": "data",
                 render: function(data, type, full, meta) {
 					
@@ -67,7 +72,7 @@ function setupData() {
 					}
 				},
                 {"data": "timestamps"}                
-				
+				*/
             ],            
             
         }
@@ -348,9 +353,9 @@ function off_aktuator() {
 								<tr>
 									<th>No</th>
 									<th>Variabel</th>
-									<th>Terukur</th>
+									<!--<th>Terukur</th>
 									<th>Waktu</th>
-									<!-- <th>Aktuator</th> -->
+									 <th>Aktuator</th> -->
 								</tr>
 							</thead>
 							

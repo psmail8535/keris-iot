@@ -1,9 +1,109 @@
 from flask import Flask, request, render_template
 from flask import jsonify
-from flask_cors import CORS
 from werkzeug.serving import WSGIRequestHandler
 import psycopg2
 from psycopg2.extras import RealDictCursor
+import json
+# ~ https://keris-iot.herokuapp.com/
+
+
+import random
+import time
+
+from paho.mqtt import client as mqtt_client
+
+
+broker = 'broker.emqx.io'
+port = 1883
+topic = "python/mqtt"
+topic = 'jember_super/in_topic'
+topicSensor = 'jember_super/topic_sensor'
+# ~ topic = 'outTopic'
+# generate client ID with pub prefix randomly
+client_id = f'python-mqtt-{random.randint(0, 1000)}'
+username = 'emqx'
+password = 'public'
+
+isNewDataExists = True
+
+def on_message(client, userdata, msg):
+	global isNewDataExists
+	print(f"MQTT Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+	
+	
+	json_dbl = msg.payload.decode().replace("'",'"')
+	print('json_dbl: ', json_dbl)
+	json_data = json.loads(json_dbl)
+	
+	print('type(msg.payload.decode()): ', type(msg.payload.decode()))
+	
+	print('str(msg.payload.decode()): ', str(msg.payload.decode()))
+	print('kode: ',json_data["kode"])
+	print('data: ',json_data["data"])
+
+	if json_data["kode"] == '0': # data sensor kelembaban tanah
+		con = db_connect()
+		cur = con.cursor() 		
+		query = "insert into keris_iot.data_sensor(id_sensor, data) values(1,'%s')" % json_data["data"]
+		print('query: \n', query)
+		cur.execute(query)
+		con.commit()
+		isNewDataExists = True
+		print('isNewDataExists: ', isNewDataExists)
+	elif json_data["kode"] == '1':	# kontrol client
+		pass
+	elif json_data["kode"] == '2': # data status aktuator pompa
+		con = db_connect()
+		cur = con.cursor() 		
+		query = "UPDATE keris_iot.data_aktuator \
+			SET   data_hardware ='%s' where id_aktuators = 1; " % json_data["data"]
+		print('query: \n', query)
+		cur.execute(query)
+		con.commit()
+	else:
+		isNewDataExists = False
+		
+def connect_mqtt():
+    def on_connect(client, userdata, flags, rc):
+        if rc == 0:
+            print("Connected to MQTT Broker!")
+        else:
+            print("Failed to connect, return code %d\n", rc)
+
+    client = mqtt_client.Client(client_id)
+    client.username_pw_set(username, password)
+    client.on_connect = on_connect
+    client.connect(broker, port)
+    return client
+    
+def publish(client, data):
+	msg_count = 0
+	# ~ while True:
+	# ~ time.sleep(3)
+	# ~ print('Masukkan 0 atau 1: ')
+	print('Kirim Mqtt')
+	msg = data.replace("'", '"') # # input()
+	# ~ msg = f"Server python Pesan: {msg_count}"
+	# ~ msg = str(msg_count)
+	result = client.publish(topic, msg)
+	# result: [0, 1]
+	status = result[0]
+	if status == 0:
+		print(f"Send `{msg}` to topic `{topic}`")
+	else:
+		print(f"Failed to send message to topic {topic}")
+	# ~ msg_count += 1
+	# ~ if msg_count > 30:
+		# ~ msg_count = 0
+
+
+# ~ def run():
+client = connect_mqtt()
+client.loop_start()
+client.subscribe(topic)
+client.on_message = on_message
+# ~ publish(client)
+
 
 def db_connect():
 	con = psycopg2.connect(
@@ -12,24 +112,26 @@ def db_connect():
 	   , host='ec2-44-205-41-76.compute-1.amazonaws.com'
 	   , port= '5432'
 	   , sslmode='require'
-	   ,connect_timeout=1024
+	   , connect_timeout=5
 	)
 	return con
 	
-app = Flask(__name__)
-CORS(app)
+def db_connect2():
+	con = psycopg2.connect(
+	   database="iot", user='istiyadi'
+	   , password='123456'
+	   , host='localhost'
+	   , port= '5432'
+	   # ~ , sslmode='require'
+	   , connect_timeout=5
+	)
+	return con
 
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-    
-
-@app.route('/json_data')
-def json_data():
-	conn = db_connect()
-	# ~ cur = con.cursor() 
-	strQuery = "select * from keris_iot.v_data2;"
+def count_data(p_id):	
+	jml_data
+	
+	
+	strQuery = "select count(*) as jml_data from keris_iot.v_data2;"
 	
 	print('strQuery: ',strQuery)
 	cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -42,11 +144,36 @@ def json_data():
 	cur.close()
 	conn.close()
 
-	# ~ print('data: ', data_sensor  )
+app = Flask(__name__)
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+    
+
+@app.route('/json_data')
+def json_data():	
+	global isNewDataExists
+	conn = db_connect()
+	strQuery = "select * from keris_iot.v_data2;"
+	
+	print('strQuery: ',strQuery)
+	cur = conn.cursor(cursor_factory=RealDictCursor)
+	cur.execute(strQuery)
+	data_sensor = cur.fetchall()
+
+	# ~ print('data_sensor: ', data_sensor)
+	count = len(data_sensor)
+	# ~ print('count data_sensor: ', data_sensor)
+	cur.close()
+	conn.close()
+	isNewDataExists = False
+	print('isNewDataExists: ', isNewDataExists  )
 	return jsonify({'data': data_sensor}), 200
 
 
-@app.route('/get_data_aktuator/', methods=['GET']) 
+@app.route('/get_data_aktuator/', methods=['GET','POST']) 
 def get_data_aktuator():
 	# ~ a = request.args.get('a')
 	# ~ b = request.args.get('b')
@@ -70,11 +197,40 @@ def get_data_aktuator():
 
 
 
+@app.route('/kontrol_aktuator2/', methods=['POST','GET']) 
+def kontrol_aktuator2():
+	print('request.json: ', request.json)
+	kode = request.json.get('kode')
+	data = request.json.get('data')
+	# ~ a = request.args.get('a')
+	# ~ b = request.args.get('b')
+	
+	publish(client, str(request.json))
+	
+	con = db_connect()
+	cur = con.cursor()
+	
+	query = "UPDATE keris_iot.data_aktuator \
+	SET  data_setup=%s \
+	WHERE id_aktuators=1;" % (data) 
+	cur.execute(query)
+	con.commit()
+	# ~ query = "update data_aktuator set status_aktuator='%s' where id_data=2" % (b)
+	# ~ cur.execute(query)
+	# ~ con.commit()
+	
+	print('data: ', data)
+	# ~ print('b: ', b)
+	return jsonify(hasil='Update status aktuator berhasil..'), 200
+
 
 @app.route('/kontrol_aktuator/', methods=['GET']) 
 def kontrol_aktuator():
 	a = request.args.get('a')
 	# ~ b = request.args.get('b')
+	
+	publish(client, a)
+	
 	con = db_connect()
 	cur = con.cursor()
 	
@@ -91,6 +247,16 @@ def kontrol_aktuator():
 	# ~ print('b: ', b)
 	return jsonify(hasil='Update status aktuator berhasil..'), 200
 
+
+@app.route('/is_exist_new_data', methods=['GET']) 
+def is_exist_new_data():	
+	global isNewDataExists
+	strIsExistsNewData = '0'
+	if isNewDataExists:
+		strIsExistsNewData = '1'	
+	
+	print('strIsExistsNewData: ', strIsExistsNewData)
+	return jsonify(new_data=strIsExistsNewData), 200
 
 @app.route('/iot_get/', methods=['GET']) # ?suhu=27.0&hum=56.9
 def iot_get():                    
@@ -167,6 +333,8 @@ def iot_get():
 	# ~ print('sts_akt_2: ', sts_akt_2[0])
 	return jsonify({"msg": 'berhasil', 'akt1':sts_akt_1[0]}), 200    
 	# ~ return jsonify({"msg": 'berhasil'}), 200    
+    
+
     
 
 if __name__ == '__main__':

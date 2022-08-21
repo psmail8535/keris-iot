@@ -1,47 +1,37 @@
 
 
-
 <!DOCTYPE HTML>
 <html>
 <head>
 	
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-  <title>Sensor Aktuator Monitoring </title>
-  <meta name="viewport" content="width=device-width">
-  <link rel="apple-touch-icon" sizes="57x57" href="https://www.kemdikbud.go.id/assets/icon/apple-icon-57x57.png">
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<title>GESI Aspek Artikel Ilmiah</title>
+	<meta name="viewport" content="width=device-width">
+	<link rel="apple-touch-icon" sizes="57x57" href="https://www.kemdikbud.go.id/assets/icon/apple-icon-57x57.png">
 	<!-- Bootstrap CSS  --> 
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" 
 		integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" 
 		crossorigin="anonymous">
-    <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+	<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
 	<link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css">
-	
-	
-  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/jquery.dataTables.min.css"/>
-  <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
-	
-  <!--
-	  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
- 		
-	  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-<link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css">
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js">
 
- --> 
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/jquery.dataTables.min.css"/>
+	<script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
 
 <script>
 	
 
-
+var haveReadStsAkt = false;
+var isExistsNewData = true;
 	
 function setupData() {
     $(document).ready(function () {
 		
 		//~ count = count + 1;
 		//~ $('#count').html(count.toString());
+		
+		
 		
 		if ($.fn.dataTable.isDataTable('#example')) {
         $('#example').DataTable().destroy();
@@ -50,7 +40,7 @@ function setupData() {
 	
          var table = $('#example').DataTable({
 		'rowsGroup': [],
-		responsive: true,		
+		responsive: true,
 		pageLength: 100,
             "ajax": {
                 "url": "/json_data",
@@ -84,7 +74,7 @@ function setupData() {
         
         );
         
-        
+        isExistsNewData = false;
 	//~ table.on( 'draw', function () {
 		//~ // your code here
 		//~ setTimeout(getDataAkt(), 8000);
@@ -102,10 +92,38 @@ function setupData() {
 
 function on_aktuator() {
 	$("#result").html("Tunggu POMPA ON...");
-	$("#on_akt").hide();
-	$("#off_akt").hide();
-  //~ $(function() {
-    //~ $('#akt_cmd').bind('click', function() {
+	
+	//~ $("#on_akt").hide();
+	//~ $("#off_akt").hide();
+	
+	haveReadStsAkt = false;
+	v_data = 
+		{
+		"kode": "1",
+		"data": "1"
+		};
+		
+	
+        $.ajax({
+            url: '/kontrol_aktuator2',
+			data: JSON.stringify(v_data), 
+			processData: false,
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function(response) {
+                console.log(response);
+               
+				return false;
+            },
+            error: function(error) {
+                console.log(error);
+				return false;
+            }
+        });
+	
+	
+/*
       $.getJSON( '/kontrol_aktuator', {		// memanggil method _add_numbers di server
         a: 1
       }, function(data) {				// return val dari method _add_numbers
@@ -114,15 +132,44 @@ function on_aktuator() {
         //location.replace = "http://localhost:5000/";
       });
       return false;
-    //~ });
-  //~ });
+   */
   
 }
 
 function off_aktuator() {
 	$("#result").html("Tunggu POMPA OFF...");
-	$("#on_akt").hide();
-	$("#off_akt").hide();
+	
+	
+	haveReadStsAkt = false;
+	v_data = 
+		{
+		"kode": "1",
+		"data": "0"
+		};
+		
+	
+        $.ajax({
+            url: '/kontrol_aktuator2',
+			data: JSON.stringify(v_data), 
+			processData: false,
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function(response) {
+                console.log(response);
+               
+				return false;
+            },
+            error: function(error) {
+                console.log(error);
+				return false;
+            }
+        });
+	
+	
+	/*
+	//~ $("#on_akt").hide();
+	//~ $("#off_akt").hide();
       $.getJSON( '/kontrol_aktuator', {		// memanggil method _add_numbers di server
         a: 0
       }, function(data) {				// return val dari method _add_numbers
@@ -130,6 +177,8 @@ function off_aktuator() {
         console.log(data.hasil);
         //location.replace = "http://localhost:5000/";
       });
+      */
+      
       return false;
 }
 
@@ -150,13 +199,14 @@ function off_aktuator() {
                 console.log('hardware: ' + response.hardware);
                 
 				
-					$("#on_akt").hide();
-					$("#off_akt").hide();
+					//~ $("#on_akt").hide();
+					//~ $("#off_akt").hide();
 				
 						if(response.hardware == '0' && response.setup == '0')
 						{
 							$("#result").html("POMPA SUDAH OFF...");						
 							$("#on_akt").show('slow');
+							haveReadStsAkt = true;
 						}
 						else if(response.hardware == '0' && response.setup == '1')
 						$("#result").html("Tunggu POMPA ON...");
@@ -166,11 +216,10 @@ function off_aktuator() {
 						{
 							$("#result").html("POMPA SUDAH ON...");
 							$("#off_akt").show('slow');
+							haveReadStsAkt = true;
 						}
 							
 				
-				setTimeout(getDataAkt, 7000);
-				setTimeout(setupData, 9000);
 				
 				return false;
             },
@@ -181,7 +230,72 @@ function off_aktuator() {
         });
 	}
 	
-	getDataAkt();
+	
+	function cekNewdataExists()
+	{
+		
+        $.ajax({
+            url: '/is_exist_new_data',
+			//~ data: JSON.stringify(v_data), 
+			processData: false,
+            type: 'GET',
+            //~ dataType: 'json',
+            contentType: 'application/json',
+            success: function(response) {
+                console.log('setup: ' + response.new_data);
+                
+				
+					//~ $("#on_akt").hide();
+					//~ $("#off_akt").hide();
+				
+						if(response.new_data == '0' )
+						{
+							isExistsNewData = false;
+						}
+						else if(response.new_data == '1' )
+						{
+							isExistsNewData = true;
+						}
+							
+				
+				
+				return false;
+            },
+            error: function(error) {
+                console.log(error);
+				return false;
+            }
+        });
+	
+	}
+	
+	function loopJs()
+	{
+		if(haveReadStsAkt == false)
+		{
+			//~ setTimeout(getDataAkt, 7000);
+			getDataAkt();
+		}
+		
+		
+		
+		cekNewdataExists();
+		if(isExistsNewData == true)
+		{
+			//~ setTimeout(setupData, 9000);
+			setupData();
+			//~ isExistsNewData = false;
+			console.log('New data exists...');
+		}
+		else{
+			console.log('No new data exists xxxx');
+			}
+		
+		setTimeout(loopJs, 5000);
+	}
+	
+	
+	loopJs();
   
   
   
@@ -201,7 +315,7 @@ function off_aktuator() {
             <div class="card">
                 <div class="card-header">
 
-				<h3 >Monitoring & Kontrol Kelembaban Tanah Kelengkeng Jember Super</h3>
+				<h3 >Monitoring & Kontrol Kelembaban Tanah Kelengkeng Jember Super MQTT</h3>
                         
                 </div>
                             <div class="card-body">
@@ -262,4 +376,3 @@ function off_aktuator() {
 
 </body>
 </html>
-

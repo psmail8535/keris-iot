@@ -25,9 +25,73 @@ username = 'emqx'
 password = 'public'
 
 isNewDataExists = True
+countStsKoneksiHd = 0
+countStsKoneksiHdB4 = 0
+
+def db_connect():
+	con = psycopg2.connect(
+	   database="d1prm2aq0rume1", user='hbvnkkcfmloojy'
+	   , password='33a85551bf829bcecfb06b8f6ca80c2953a17deba76f1c5c04a7cd198a49048a'
+	   , host='ec2-44-205-41-76.compute-1.amazonaws.com'
+	   , port= '5432'
+	   , sslmode='require'
+	   , connect_timeout=5
+	)
+	return con
+	
+def db_connect2():
+	con = psycopg2.connect(
+	   database="iot", user='istiyadi'
+	   , password='123456'
+	   , host='localhost'
+	   , port= '5432'
+	   # ~ , sslmode='require'
+	   , connect_timeout=5
+	)
+	return con
+
+def publish(client, data):
+	msg_count = 0
+	# ~ while True:
+	# ~ time.sleep(3)
+	# ~ print('Masukkan 0 atau 1: ')
+	print('Kirim Mqtt')
+	msg = data.replace("'", '"') # # input()
+	# ~ msg = f"Server python Pesan: {msg_count}"
+	# ~ msg = str(msg_count)
+	result = client.publish(topic, msg)
+	# result: [0, 1]
+	status = result[0]
+	if status == 0:
+		print(f"Send `{msg}` to topic `{topic}`")
+	else:
+		print(f"Failed to send message to topic {topic}")
+	# ~ msg_count += 1
+	# ~ if msg_count > 30:
+		# ~ msg_count = 0
+
+def get_data_aktuators():
+	# ~ a = request.args.get('a')
+	# ~ b = request.args.get('b')
+	con = db_connect()
+	cur = con.cursor()
+	
+	query = "select da.data_setup , da.data_hardware  from keris_iot.data_aktuator da \
+			where da.id_aktuators = 1 and da.kd_sts_aktif = '1';;"  #% (a) 
+	cur.execute(query)
+	listdata = cur.fetchall()
+	con.commit()
+	# ~ print(listdata)
+	# ~ print('type(listdata): ', type(listdata))
+	
+	sts_akt_setup = listdata[0][0]
+	sts_akt_hardware = listdata[0][1]
+	return sts_akt_setup, sts_akt_hardware
+
 
 def on_message(client, userdata, msg):
 	global isNewDataExists
+	global countStsKoneksiHd
 	print(f"MQTT Received `{msg.payload.decode()}` from `{msg.topic}` topic")
 	
 	
@@ -60,6 +124,13 @@ def on_message(client, userdata, msg):
 		print('query: \n', query)
 		cur.execute(query)
 		con.commit()
+	elif json_data["kode"] == '4':	# request client
+		sts_akt_setup, sts_akt_hardware = get_data_aktuators()
+		jsonData = '{"kode":"5","data":"%s"}' % sts_akt_setup
+		publish(client, jsonData)
+	elif json_data["kode"] == '6':	# status hardware
+		countStsKoneksiHd += 1
+		
 	else:
 		isNewDataExists = False
 		
@@ -76,26 +147,6 @@ def connect_mqtt():
     client.connect(broker, port)
     return client
     
-def publish(client, data):
-	msg_count = 0
-	# ~ while True:
-	# ~ time.sleep(3)
-	# ~ print('Masukkan 0 atau 1: ')
-	print('Kirim Mqtt')
-	msg = data.replace("'", '"') # # input()
-	# ~ msg = f"Server python Pesan: {msg_count}"
-	# ~ msg = str(msg_count)
-	result = client.publish(topic, msg)
-	# result: [0, 1]
-	status = result[0]
-	if status == 0:
-		print(f"Send `{msg}` to topic `{topic}`")
-	else:
-		print(f"Failed to send message to topic {topic}")
-	# ~ msg_count += 1
-	# ~ if msg_count > 30:
-		# ~ msg_count = 0
-
 
 # ~ def run():
 client = connect_mqtt()
@@ -105,27 +156,9 @@ client.on_message = on_message
 # ~ publish(client)
 
 
-def db_connect():
-	con = psycopg2.connect(
-	   database="d1prm2aq0rume1", user='hbvnkkcfmloojy'
-	   , password='33a85551bf829bcecfb06b8f6ca80c2953a17deba76f1c5c04a7cd198a49048a'
-	   , host='ec2-44-205-41-76.compute-1.amazonaws.com'
-	   , port= '5432'
-	   , sslmode='require'
-	   , connect_timeout=5
-	)
-	return con
-	
-def db_connect2():
-	con = psycopg2.connect(
-	   database="iot", user='istiyadi'
-	   , password='123456'
-	   , host='localhost'
-	   , port= '5432'
-	   # ~ , sslmode='require'
-	   , connect_timeout=5
-	)
-	return con
+
+
+
 
 def count_data(p_id):	
 	jml_data
@@ -175,6 +208,7 @@ def json_data():
 
 @app.route('/get_data_aktuator/', methods=['GET','POST']) 
 def get_data_aktuator():
+	'''
 	# ~ a = request.args.get('a')
 	# ~ b = request.args.get('b')
 	con = db_connect()
@@ -190,6 +224,9 @@ def get_data_aktuator():
 	
 	sts_akt_setup = listdata[0][0]
 	sts_akt_hardware = listdata[0][1]
+	'''
+	
+	sts_akt_setup,sts_akt_hardware = get_data_aktuators()
 	
 	# ~ print('a: ', a)
 	# ~ print('b: ', b)
@@ -251,12 +288,32 @@ def kontrol_aktuator():
 @app.route('/is_exist_new_data', methods=['GET']) 
 def is_exist_new_data():	
 	global isNewDataExists
+	global countStsKoneksiHd
+	global countStsKoneksiHdB4
 	strIsExistsNewData = '0'
 	if isNewDataExists:
 		strIsExistsNewData = '1'	
-	
+	isHdwarePoweredOn = '1'
+	print('countStsKoneksiHd: ', countStsKoneksiHd)
+	if countStsKoneksiHd > 0:
+		
+		if countStsKoneksiHd > countStsKoneksiHdB4:
+			countStsKoneksiHdB4 = countStsKoneksiHd
+			if countStsKoneksiHd > 5:
+				countStsKoneksiHd = 0
+				countStsKoneksiHdB4 = 0
+			# ~ countStsKoneksiHd += 1
+			# ~ countStsKoneksiHd = 0
+		else:
+			countStsKoneksiHd = 0
+			countStsKoneksiHdB4 = 0
+			
+	else:
+		isHdwarePoweredOn = '0'
 	print('strIsExistsNewData: ', strIsExistsNewData)
-	return jsonify(new_data=strIsExistsNewData), 200
+	print('isHdwarePoweredOn: ', isHdwarePoweredOn)
+	# ~ return jsonify(new_data=strIsExistsNewData), 200
+	return jsonify({"new_data": '%s'% (strIsExistsNewData) , "sts_hrdware": "%s" % (isHdwarePoweredOn) }), 200  
 
 @app.route('/iot_get/', methods=['GET']) # ?suhu=27.0&hum=56.9
 def iot_get():                    
@@ -334,6 +391,7 @@ def iot_get():
 	return jsonify({"msg": 'berhasil', 'akt1':sts_akt_1[0]}), 200    
 	# ~ return jsonify({"msg": 'berhasil'}), 200    
     
+
 
     
 

@@ -110,7 +110,7 @@ function on_aktuator() {
 		
 	
         $.ajax({
-            url: '/kontrol_aktuator2',
+            url: '/kontrol_aktuator2/',
 			data: JSON.stringify(v_data), 
 			processData: false,
             type: 'POST',
@@ -154,7 +154,7 @@ function off_aktuator() {
 		
 	
         $.ajax({
-            url: '/kontrol_aktuator2',
+            url: '/kontrol_aktuator2/',
 			data: JSON.stringify(v_data), 
 			processData: false,
             type: 'POST',
@@ -237,6 +237,248 @@ function off_aktuator() {
 	
 	
 	function cekNewdataExists()
+
+
+<!DOCTYPE HTML>
+<html>
+<head>
+	
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<title>IOT Kontrol</title>
+	<meta name="viewport" content="width=device-width">
+	<link rel="apple-touch-icon" sizes="57x57" href="https://www.kemdikbud.go.id/assets/icon/apple-icon-57x57.png">
+	<!-- Bootstrap CSS  --> 
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" 
+		integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" 
+		crossorigin="anonymous">
+	<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+	<link rel="stylesheet" href="//use.fontawesome.com/releases/v5.0.7/css/all.css">
+
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.18/css/jquery.dataTables.min.css"/>
+	<script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
+
+<script>
+	
+
+var haveReadStsAkt = false;
+var haveReadStsAktInit = false;
+var isExistsNewData = true;
+	
+function setupData() {
+    $(document).ready(function () {
+		
+		//~ count = count + 1;
+		//~ $('#count').html(count.toString());
+		
+		
+		
+		if ($.fn.dataTable.isDataTable('#example')) {
+        $('#example').DataTable().destroy();
+		}
+		
+	
+         var table = $('#example').DataTable({
+		'rowsGroup': [],
+		responsive: true,
+		pageLength: 100,
+            "ajax": {
+                "url": "/json_data",
+                "dataType": "json",
+                "dataSrc": "data",
+                "contentType":"application/json"
+            },
+            "columns": [
+                {"data": "nomor"},
+                //{"data": "id_artikel"},
+                {"data": "nama_sensor",
+                render: function(data, type, full, meta) {
+						return	'<span class="text-information" style="font-weight: bold;">' +full.nama_sensor  +' </span> <br>' +
+						'<span class="text-success" style="font-weight: bold;">' +full.data  +' </span> <br>'  + 
+						full.timestamps
+													
+					}
+				}
+				/*
+				,
+                {"data": "data",
+                render: function(data, type, full, meta) {
+					
+						if(full.nama_sensor == '')
+						return	'<span class="text-danger" style="font-weight: bold;">Non-Gesi </span>' ;
+						else
+						return	'<span class="text-success" style="font-weight: bold;">' +full.data  +' </span>' ;
+							
+					}
+				},
+                {"data": "timestamps"}                
+				*/
+            ],            
+            
+        }
+        
+        );
+        
+        isExistsNewData = false;
+	//~ table.on( 'draw', function () {
+		//~ // your code here
+		//~ setTimeout(getDataAkt(), 8000);
+	//~ });
+        
+        
+    });
+	
+	
+	
+}
+
+	
+
+
+function on_aktuator() {
+	$("#result").html("Tunggu POMPA ON...");
+	
+	//~ $("#on_akt").hide();
+	//~ $("#off_akt").hide();
+	
+	haveReadStsAkt = false;
+	v_data = 
+		{
+		"kode": "1",
+		"data": "1"
+		};
+		
+	
+        $.ajax({
+            url: '/kontrol_aktuator2/',
+			data: JSON.stringify(v_data), 
+			processData: false,
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function(response) {
+                console.log(response);
+               
+				return false;
+            },
+            error: function(error) {
+                console.log(error);
+				return false;
+            }
+        });
+	
+	
+/*
+      $.getJSON( '/kontrol_aktuator', {		// memanggil method _add_numbers di server
+        a: 1
+      }, function(data) {				// return val dari method _add_numbers
+        $("#result").html(data.hasil);
+        console.log(data.hasil);
+        //location.replace = "http://localhost:5000/";
+      });
+      return false;
+   */
+  
+}
+
+function off_aktuator() {
+	$("#result").html("Tunggu POMPA OFF...");
+	
+	
+	haveReadStsAkt = false;
+	v_data = 
+		{
+		"kode": "1",
+		"data": "0"
+		};
+		
+	
+        $.ajax({
+            url: '/kontrol_aktuator2/',
+			data: JSON.stringify(v_data), 
+			processData: false,
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function(response) {
+                console.log(response);
+               
+				return false;
+            },
+            error: function(error) {
+                console.log(error);
+				return false;
+            }
+        });
+	
+	
+	/*
+	//~ $("#on_akt").hide();
+	//~ $("#off_akt").hide();
+      $.getJSON( '/kontrol_aktuator', {		// memanggil method _add_numbers di server
+        a: 0
+      }, function(data) {				// return val dari method _add_numbers
+        $("#result").html(data.hasil);
+        console.log(data.hasil);
+        //location.replace = "http://localhost:5000/";
+      });
+      */
+      
+      return false;
+}
+
+  //~ setTimeout(setupData, 8000);
+  
+  
+	function getDataAkt()
+	{
+        $.ajax({
+            url: '/get_data_aktuator',
+			//~ data: JSON.stringify(v_data), 
+			processData: false,
+            type: 'GET',
+            //~ dataType: 'json',
+            contentType: 'application/json',
+            success: function(response) {
+                console.log('setup: ' + response.setup);
+                console.log('hardware: ' + response.hardware);
+                
+				
+					//~ $("#on_akt").hide();
+					//~ $("#off_akt").hide();
+				
+						if(response.hardware == '0' && response.setup == '0')
+						{
+							$("#result").html("POMPA SUDAH OFF...");						
+							$("#on_akt").show('slow');
+							$("#off_akt").hide();
+							haveReadStsAkt = true;
+						}
+						else if(response.hardware == '0' && response.setup == '1')
+						$("#result").html("Tunggu POMPA ON...");
+						else if(response.hardware == '1' && response.setup == '0')
+						$("#result").html("Tunggu POMPA OFF...");
+						else if(response.hardware == '1' && response.setup == '1')
+						{
+							$("#result").html("POMPA SUDAH ON...");
+							$("#off_akt").show('slow');
+							$("#on_akt").hide();
+							haveReadStsAkt = true;
+						}
+							
+				
+				
+				return false;
+            },
+            error: function(error) {
+                console.log(error);
+				return false;
+            }
+        });
+	}
+	
+	
+	function cekNewdataExists()
 	{
 		
         $.ajax({
@@ -248,6 +490,7 @@ function off_aktuator() {
             contentType: 'application/json',
             success: function(response) {
                 console.log('setup: ' + response.new_data);
+                console.log('sts_hrdware: ' + response.sts_hrdware);
                 
 				
 					//~ $("#on_akt").hide();
@@ -261,6 +504,27 @@ function off_aktuator() {
 						{
 							isExistsNewData = true;
 						}
+						if(response.sts_hrdware == '0' )
+						{
+							$("#result").html("HARDWARE POWER OFF...");
+							console.log("HARDWARE POWER OFF...");
+							haveReadStsAktInit = false;
+							
+							$("#on_akt").hide();
+							$("#off_akt").hide();
+						}
+						else{
+								console.log("HARDWARE POWER ON...");
+								if(haveReadStsAktInit == false)
+								{
+									$("#result").html("HARDWARE POWER ON...");
+									getDataAkt();
+									haveReadStsAktInit = true;
+								}
+							}
+						//console.log("response.sts_hrdware: ");
+						//console.log("response.sts_hrdware: " + response.sts_hrdware);
+						
 							
 				
 				
@@ -296,7 +560,7 @@ function off_aktuator() {
 			console.log('No new data exists xxxx');
 			}
 		
-		setTimeout(loopJs, 5000);
+		setTimeout(loopJs, 10000);
 	}
 	
 	
@@ -304,6 +568,84 @@ function off_aktuator() {
   
   
   
+</script>
+			
+    
+</head>
+<body style="padding: 25px;" onload='setupData()'>
+	
+	
+            <header class="main-header-top hidden-print">
+				</header>
+	
+			
+<div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+
+				<h3 >Monitoring & Kontrol Kelembaban Tanah Kelengkeng Jember Super MQTT</h3>
+                        
+                </div>
+                            <div class="card-body">
+								
+								
+								<div class="row">
+									<div class="col-lg-12 text-right">
+										<span class="label mt-2" id=result>...</span>	
+										
+										<button class="btn btn-lg btn-danger  mt-2" id="on_akt" name="on_akt"  onclick="on_aktuator()">ON POMPA</button>	
+										<button class="btn btn-lg btn-success mt-2" id="off_akt" name="off_akt"  onclick="off_aktuator()">OFF POMPA</button>	
+										
+										<!--- &nbsp;Count: <span id=count>0</span>	-->
+										
+									</div>
+								</div>
+                
+                
+                
+                 <div class="row">
+					 <div class="col-lg-12" >
+						<hr>
+					</div>  
+                 </div>
+                                  
+				<div class="row mt-8">
+					<div class="col-lg-12">
+						<table id="example" class="display" style="width:100%">
+							<thead>
+								<tr>
+									<th>No</th>
+									<th>Variabel</th>
+									<!--<th>Terukur</th>
+									<th>Waktu</th>
+									 <th>Aktuator</th> -->
+								</tr>
+							</thead>
+							
+						</table>
+                     
+					</div>
+                </div>
+                            
+                            </div>
+
+            </div>
+        </div>
+    </div>
+
+         
+<!--
+<div id="view_user" style="display: none;">
+	
+	<span>Informasi: </span><span id="info_login" style="background-color: yellow; padding: 10px;"></span>
+          
+</div>
+-->
+
+</body>
+</html>
+
 </script>
 			
     
